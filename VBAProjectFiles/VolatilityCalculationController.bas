@@ -38,7 +38,7 @@ Public Sub VolatilityCalculationController()
     
     Dim i As Long: i = 0
     For i = 2 To diWsDataLastRow
-        If (diWs.Cells(i, diDateCol).Value <= diWs.Cells(i - 1, diDateCol).Value) Then
+        If (diWs.Cells(i, diDateCol).Value <= diWs.Cells(i + 1, diDateCol).Value) Then
             GoTo DatesErrorHandler
         End If
     Next i
@@ -59,6 +59,7 @@ Public Sub VolatilityCalculationController()
                     GoTo DataInputErrorHandler
                 End If
             Next i
+            crWs.Cells(4, crCalcResCol).Value = vbNullString
             crWs.Cells(4, crCalcResCol).Value = VolatilityCalculationService.getCloseToCloseVolatility(diWsDataLastRow)
     End Select
     
