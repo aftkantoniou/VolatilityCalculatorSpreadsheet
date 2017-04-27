@@ -67,7 +67,7 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long)
     
     ' Calculation of period's standard deviation
     ' ==========================================
-    annualizationFactor = crWs.Cells(7, crAnnualizationFactorCol).Value
-    getCloseToCloseVolatility = Sqr(logReturnsSdFmSum / (logReturnsNumber - 1)) * Sqrt(annualizationFactor)
+    annualizationFactor = crWs.Cells(8, crAnnualizationFactorCol).Value
+    getCloseToCloseVolatility = Sqr(logReturnsSdFmSum / (logReturnsNumber - 1)) * Sqr(annualizationFactor)
 
 End Function
