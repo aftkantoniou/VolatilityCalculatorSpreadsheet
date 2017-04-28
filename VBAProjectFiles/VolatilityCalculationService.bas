@@ -51,8 +51,6 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long)
     ' Calculation of mean of log returns
     ' ==================================
     logReturnsMean = logReturnsSum / logReturnsNumber
-    
-    ' this logreturn will be added the logReturns Array
         
     ' Calculation of sum sum of squared deviations from mean logReturn
     ' Here the difference from mean log return is not "powered to 2".
