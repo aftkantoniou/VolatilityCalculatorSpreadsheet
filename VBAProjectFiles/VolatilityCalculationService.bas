@@ -1,6 +1,8 @@
 Attribute VB_Name = "VolatilityCalculationService"
 Option Explicit
 
+    Private sumRs As Double
+
 ' This module provides the collection of functions which are used to calculate historical volatility
 ' with different valuation methods.
 '
@@ -115,8 +117,8 @@ Public Function getRogersSatchellVolatility(dataLastRow, annualizationFactor) As
     ' =================================================================================
 
     Dim i       As Long
-    Dim sumRs   As Double: sumRs = vbEmpty
     
+    sumRs = vbEmpty
     For i = 2 To dataLastRow
         With diWs
             If (.Cells(i, diCloseCol).Value > 0) And (.Cells(i, diOpenCol).Value > 0) And (.Cells(i, diHighCol).Value > 0) And (.Cells(i, diLowCol).Value > 0) Then
@@ -157,8 +159,10 @@ Public Function getYangZhangVolatility(dataLastRow, annualizationFactor) As Doub
     
     Dim k                   As Double: k = vbEmpty
     Dim sumYz               As Double: sumYz = vbEmpty
-    Dim overnigthVol        As Double: overnigthVol = vbEmpty
-    Dim openToCloseVol      As Double: openToCloseVol = vbEmpty
+    Dim sumRs               As Double: sumRs = vbEmpty
+    Dim rsVariance          As Double: rsVariance = vbEmpty
+    Dim overnigthVariance   As Double: overnigthVariance = vbEmpty
+    Dim openToCloseVariance As Double: openToCloseVariance = vbEmpty
     Dim overnightSum        As Double: overnightSum = vbEmpty
     Dim openToCloseSum      As Double: openToCloseSum = vbEmpty
     Dim overnightVolMean    As Double: overnightVolMean = vbEmpty
@@ -179,5 +183,35 @@ Public Function getYangZhangVolatility(dataLastRow, annualizationFactor) As Doub
                 openToCloseSum = openToCloseSum + (Log(.Cells(i, diCloseCol).Value) - Log(.Cells(i, diOpenCol).Value))
             End If
         End With
+    Next i
+    
+    ' Calculation of the means needed for the generic calculation
+    ' ===========================================================
+    overnightVolMean = overnightSum / n
+    openToCloseVolMean = openToCloseVolMean / n
+    
+    ' Calculation of the respective sums which map to the different volatilities used for the generic calculation
+    ' ===========================================================================================================
+    overnightSum = vbEmpty
+    openToCloseSum = vbEmpty
+    For i = 2 To n
+        With diWs
+            If (.Cells(i, diCloseCol).Value > 0) And (.Cells(i, diOpenCol).Value > 0) And (.Cells(i + 1, diCloseCol).Value > 0) Then
+                overnightSum = overnightSum + (((Log(.Cells(i, diOpenCol).Value) - Log(.Cells(i + 1, diCloseCol).Value)) - overnightVolMean) * ((Log(.Cells(i, diOpenCol).Value) - Log(.Cells(i + 1, diCloseCol).Value)) - overnightVolMean))
+                openToCloseSum = openToCloseSum + (((Log(.Cells(i, diCloseCol).Value) - Log(.Cells(i, diOpenCol).Value)) - openToCloseVolMean) * ((Log(.Cells(i, diOpenCol).Value) - Log(.Cells(i + 1, diCloseCol).Value)) - overnightVolMean))
+            End If
+        End With
+    Next i
+    
+    overnigthVariance = overnightSum / (n - 1)
+    openToCloseVariance = openToCloseSum / (n - 1)
+    
+    ' WARNING
+    ' issue needs to be addressed
+    ' rs variable although visible to the whole module has zero value at this point
+    ' =============================================================================
+    rsVariance = 1.01884592454401E-03 / n
+    
+    getYangZhangVolatility = Sqr(overnigthVariance + (k * openToCloseVariance) + ((1 - k) * rsVariance)) * Sqr(annualizationFactor)
     
 End Function
