@@ -74,10 +74,15 @@ Public Sub VolatilityCalculationController()
     crWs.Cells(4, crCalcResRogersSatcellCol).Value = vbNullString
     crWs.Cells(4, crCalcResRogersSatcellCol).Value = VolatilityCalculationService.getRogersSatchellVolatility(diWsDataLastRow, annualizationFactor)
     
-    ' Garman - Klass Yang Zhang
-    ' =========================
+    ' Garman - Klass Yang - Zhang
+    ' ===========================
     crWs.Cells(4, crCalcResGarmanKlassYangZhangCol).Value = vbNullString
     crWs.Cells(4, crCalcResGarmanKlassYangZhangCol).Value = VolatilityCalculationService.getGarmanKlassYangZhangVolatility(diWsDataLastRow, annualizationFactor)
+    
+'    ' Yang - Zhang
+'    ' ============
+'    crWs.Cells(4, crCalcResYangZhangCol).Value = vbNullString
+'    crWs.Cells(4, crCalcResYangZhangCol).Value = VolatilityCalculationService.getYangZhangVolatility(diWsDataLastRow, annualizationFactor)
     
 SubExit:
 

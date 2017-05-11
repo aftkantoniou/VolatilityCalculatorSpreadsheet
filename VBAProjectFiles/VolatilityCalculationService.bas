@@ -149,3 +149,35 @@ Public Function getGarmanKlassYangZhangVolatility(dataLastRow, annualizationFact
     getGarmanKlassYangZhangVolatility = Sqr(sumGkYz / (dataLastRow - 1)) * Sqr(annualizationFactor)
 
 End Function
+
+Public Function getYangZhangVolatility(dataLastRow, annualizationFactor) As Double
+
+    Dim i                   As Long
+    Dim n                   As Long: n = vbEmpty
+    
+    Dim k                   As Double: k = vbEmpty
+    Dim sumYz               As Double: sumYz = vbEmpty
+    Dim overnigthVol        As Double: overnigthVol = vbEmpty
+    Dim openToCloseVol      As Double: openToCloseVol = vbEmpty
+    Dim overnightSum        As Double: overnightSum = vbEmpty
+    Dim openToCloseSum      As Double: openToCloseSum = vbEmpty
+    Dim overnightVolMean    As Double: overnightVolMean = vbEmpty
+    Dim openToCloseVolMean  As Double: openToCloseVolMean = vbEmpty
+    
+    n = dataLastRow - 1
+    
+    ' Constant used to minimize the variance of the estimator
+    ' =======================================================
+    k = 0.34 / (1.34 + ((n + 1) / (n - 1)))
+    
+    ' Loop used to calculate the mean values needed for the generic calculation
+    ' =========================================================================
+    For i = 2 To n
+        With diWs
+            If (.Cells(i, diCloseCol).Value > 0) And (.Cells(i, diOpenCol).Value > 0) And (.Cells(i + 1, diCloseCol).Value > 0) Then
+                overnightSum = overnightSum + (Log(.Cells(i, diOpenCol).Value) - Log(.Cells(i + 1, diCloseCol).Value))
+                openToCloseSum = openToCloseSum + (Log(.Cells(i, diCloseCol).Value) - Log(.Cells(i, diOpenCol).Value))
+            End If
+        End With
+    
+End Function
