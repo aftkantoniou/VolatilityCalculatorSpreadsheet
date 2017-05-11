@@ -16,12 +16,19 @@ Option Explicit
 ' If you validate the resuls of these calculation and you see discrepancies with your validation reference
 ' without an error on another obvious reason please check the data input for negative entries or ultimately
 ' debug this code in order to find out if and where an error or miscalculation occurs.
+'
+'
+' Referance implementation note:
+' ------------------------------
+'
+' The calculations made below were done using the implementations of the respective models presented in the
+' "Measuring Historical Volatility" paper distributed by Santander on February 3, 2012.
 ' =========================================================================================================
 
-Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long, ByVal annualizationFactor As Integer)
+Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long, ByVal annualizationFactor As Integer) As Double
 
-    ' This function computes the historical volatility by the close to close method.
-    ' ==============================================================================
+    ' This function computes the historical volatility by the close to close model.
+    ' =============================================================================
     
     ' Symbolic links to variable names:
     ' logReturnsSdFmSum = sum of squared deviations from mean logReturn
@@ -80,11 +87,13 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long, ByVal annua
 
 End Function
 
-Public Function getGarmanKlassVolatility(ByVal dataLastRow As Long, ByVal annualizationFactor As Integer)
+Public Function getGarmanKlassVolatility(ByVal dataLastRow As Long, ByVal annualizationFactor As Integer) As Double
 
-    Dim i   As Long
-    
-    Dim sumGk As Double: sumGk = vbEmpty
+    ' This function computes the historical volatility using the Garman-Klass model.
+    ' ==============================================================================
+
+    Dim i       As Long
+    Dim sumGk   As Double: sumGk = vbEmpty
     
     For i = 2 To dataLastRow
         With diWs
@@ -98,4 +107,25 @@ Public Function getGarmanKlassVolatility(ByVal dataLastRow As Long, ByVal annual
     
     getGarmanKlassVolatility = Sqr(sumGk / (dataLastRow - 1)) * Sqr(annualizationFactor)
 
+End Function
+
+Public Function getRogersSatchellVolatility(dataLastRow, annualizationFactor) As Double
+
+    ' This function computes the historical volatility using the Rogers-Satchell model.
+    ' =================================================================================
+
+    Dim i As Long
+    Dim sumRs As Double: sumRs = vbEmpty
+    
+    For i = 2 To dataLastRow
+        With diWs
+            If (.Cells(i, diCloseCol).Value > 0) And (.Cells(i, diOpenCol).Value > 0) And (.Cells(i, diHighCol).Value > 0) And (.Cells(i, diLowCol).Value > 0) Then
+                sumRs = sumRs + ((Log(.Cells(i, diHighCol).Value) - Log(.Cells(i, diCloseCol).Value)) * (Log(.Cells(i, diHighCol).Value) - Log(.Cells(i, diOpenCol).Value))) _
+                              + ((Log(.Cells(i, diLowCol).Value) - Log(.Cells(i, diCloseCol).Value)) * (Log(.Cells(i, diLowCol).Value) - Log(.Cells(i, diOpenCol).Value)))
+            End If
+        End With
+    Next i
+    
+    getRogersSatchellVolatility = Sqr(sumRs / (dataLastRow - 1)) * Sqr(annualizationFactor)
+    
 End Function

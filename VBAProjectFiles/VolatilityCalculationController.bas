@@ -69,6 +69,11 @@ Public Sub VolatilityCalculationController()
     crWs.Cells(4, crCalcResGarmanKlassCol).Value = vbNullString
     crWs.Cells(4, crCalcResGarmanKlassCol).Value = VolatilityCalculationService.getGarmanKlassVolatility(diWsDataLastRow, annualizationFactor)
     
+    ' Rogers - Satchell Model
+    ' =======================
+    crWs.Cells(4, crCalcResRogersSatcellCol).Value = vbNullString
+    crWs.Cells(4, crCalcResRogersSatcellCol).Value = VolatilityCalculationService.getRogersSatchellVolatility(diWsDataLastRow, annualizationFactor)
+    
 SubExit:
 
     With Application
