@@ -46,22 +46,20 @@ Public Sub VolatilityCalculationController()
     ' Volatility Calculation Controller initiation
     ' ============================================
     
-    calculationMethodologySelected = crWs.Cells(4, crCalcMethCol).Value
+    ' Checking whether the inputs that will be used are valid numbers
+    ' ===============================================================
+    errorCol = vbEmpty
+    For i = 2 To diWsDataLastRow
+        If IsNumeric(diWs.Cells(i, diCloseCol).Value) = False Then
+            errorCol = diCloseCol
+            GoTo DataInputErrorHandler
+        End If
+    Next i
     
-    Select Case calculationMethodologySelected
-        Case "Close to Close Methodology"
-            errorCol = vbEmpty
-            For i = 2 To diWsDataLastRow
-                ' Checking whether the inputs that will be used are valid numbers
-                ' ===============================================================
-                If IsNumeric(diWs.Cells(i, diCloseCol).Value) = False Then
-                    errorCol = diCloseCol
-                    GoTo DataInputErrorHandler
-                End If
-            Next i
-            crWs.Cells(4, crCalcResCol).Value = vbNullString
-            crWs.Cells(4, crCalcResCol).Value = VolatilityCalculationService.getCloseToCloseVolatility(diWsDataLastRow)
-    End Select
+    
+    
+    crWs.Cells(4, crCalcResCloseToCloseCol).Value = vbNullString
+    crWs.Cells(4, crCalcResCloseToCloseCol).Value = VolatilityCalculationService.getCloseToCloseVolatility(diWsDataLastRow)
     
 SubExit:
 
