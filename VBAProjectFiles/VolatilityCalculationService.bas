@@ -104,7 +104,7 @@ Public Function getGarmanKlassVolatility(ByVal dataLastRow As Long, ByVal annual
             End If
         End With
     Next i
-    
+        
     getGarmanKlassVolatility = Sqr(sumGk / (dataLastRow - 1)) * Sqr(annualizationFactor)
 
 End Function
@@ -138,11 +138,14 @@ Public Function getGarmanKlassYangZhangVolatility(dataLastRow, annualizationFact
     For i = 2 To (dataLastRow - 1)
         With diWs
             If (.Cells(i, diCloseCol).Value > 0) And (.Cells(i, diOpenCol).Value > 0) And (.Cells(i, diHighCol).Value > 0) And (.Cells(i, diLowCol).Value > 0) And (.Cells(i + 1, diCloseCol).Value > 0) Then
-                sumGkYz = sumGkYz +
+                sumGkYz = sumGkYz + ((Log(.Cells(i, diOpenCol).Value) - Log(.Cells(i + 1, diCloseCol).Value)) * (Log(.Cells(i, diOpenCol).Value) - Log(.Cells(i + 1, diCloseCol).Value)) _
+                                  + ((1 / 2 * ((Log(.Cells(i, diHighCol).Value) - Log(.Cells(i, diLowCol).Value)) * (Log(.Cells(i, diHighCol).Value) - Log(.Cells(i, diLowCol).Value)))) _
+                                  - ((2 * Log(2) - 1) _
+                                  * (((Log(.Cells(i, diCloseCol).Value) - Log(.Cells(i, diOpenCol).Value)) * (Log(.Cells(i, diCloseCol).Value) - Log(.Cells(i, diOpenCol).Value)))))))
             End If
         End With
     Next i
     
-    
+    getGarmanKlassYangZhangVolatility = Sqr(sumGkYz / (dataLastRow - 1)) * Sqr(annualizationFactor)
 
 End Function
