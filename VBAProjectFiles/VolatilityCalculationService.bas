@@ -114,8 +114,8 @@ Public Function getRogersSatchellVolatility(dataLastRow, annualizationFactor) As
     ' This function computes the historical volatility using the Rogers-Satchell model.
     ' =================================================================================
 
-    Dim i As Long
-    Dim sumRs As Double: sumRs = vbEmpty
+    Dim i       As Long
+    Dim sumRs   As Double: sumRs = vbEmpty
     
     For i = 2 To dataLastRow
         With diWs
@@ -128,4 +128,21 @@ Public Function getRogersSatchellVolatility(dataLastRow, annualizationFactor) As
     
     getRogersSatchellVolatility = Sqr(sumRs / (dataLastRow - 1)) * Sqr(annualizationFactor)
     
+End Function
+
+Public Function getGarmanKlassYangZhangVolatility(dataLastRow, annualizationFactor) As Double
+    
+    Dim i       As Long
+    Dim sumGkYz As Double: sumGkYz = vbEmpty
+    
+    For i = 2 To (dataLastRow - 1)
+        With diWs
+            If (.Cells(i, diCloseCol).Value > 0) And (.Cells(i, diOpenCol).Value > 0) And (.Cells(i, diHighCol).Value > 0) And (.Cells(i, diLowCol).Value > 0) And (.Cells(i + 1, diCloseCol).Value > 0) Then
+                sumGkYz = sumGkYz +
+            End If
+        End With
+    Next i
+    
+    
+
 End Function
