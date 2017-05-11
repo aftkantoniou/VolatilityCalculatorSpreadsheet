@@ -5,6 +5,7 @@ Option Explicit
     Private diWsDataLastRow                 As Long
     
     Private errorCol                        As Integer
+    Private annualizationFactor             As Integer
     
     Private calculationMethodologySelected  As String
     
@@ -46,20 +47,27 @@ Public Sub VolatilityCalculationController()
     ' Volatility Calculation Controller initiation
     ' ============================================
     
+    annualizationFactor = crWs.Cells(8, crAnnualizationFactorCol).Value
+    
     ' Checking whether the inputs that will be used are valid numbers
     ' ===============================================================
     errorCol = vbEmpty
     For i = 2 To diWsDataLastRow
-        If IsNumeric(diWs.Cells(i, diCloseCol).Value) = False Then
-            errorCol = diCloseCol
-            GoTo DataInputErrorHandler
-        End If
+        Select Case False
+            Case IsNumeric(diWs.Cells(i, diCloseCol).Value), IsNumeric(diWs.Cells(i, diOpenCol).Value), IsNumeric(diWs.Cells(i, diHighCol).Value), IsNumeric(diWs.Cells(i, diLowCol).Value)
+                GoTo DataInputErrorHandler
+        End Select
     Next i
     
-    
-    
+    ' Close to Close Model
+    ' ====================
     crWs.Cells(4, crCalcResCloseToCloseCol).Value = vbNullString
-    crWs.Cells(4, crCalcResCloseToCloseCol).Value = VolatilityCalculationService.getCloseToCloseVolatility(diWsDataLastRow)
+    crWs.Cells(4, crCalcResCloseToCloseCol).Value = VolatilityCalculationService.getCloseToCloseVolatility(diWsDataLastRow, annualizationFactor)
+    
+    ' Garman - Klass Model
+    ' ====================
+    crWs.Cells(4, crCalcResGarmanKlassCol).Value = vbNullString
+    crWs.Cells(4, crCalcResGarmanKlassCol).Value = VolatilityCalculationService.getGarmanKlassVolatility(diWsDataLastRow, annualizationFactor)
     
 SubExit:
 
@@ -99,10 +107,7 @@ DataInputErrorHandler:
     MsgBox "There seems to be a problem in the data input format of the data which have to be processed for the calculation method chosen." _
            & vbNewLine _
            & vbNewLine _
-           & "Column where the problem occured: " & errorCol _
-           & vbNewLine _
-           & vbNewLine _
-           & "Row there the problem occured: " & i _
+           & "The data have to be numeric. However, some of them are not." _
            & vbNewLine _
            & vbNewLine _
            & "Please remedy the prolem and restart the process."

@@ -1,7 +1,24 @@
 Attribute VB_Name = "VolatilityCalculationService"
 Option Explicit
 
-Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long)
+' This module provides the collection of functions which are used to calculate historical volatility
+' with different valuation methods.
+'
+' WARNING
+' -------
+'
+' A generic characteristic of the code used is that a "non negative entry" check is applied before
+' every loop which is used to calculate historical volatility with all these different methods.
+' The aforementioned check is used to guarantee that no negative or zero numbers will be used as
+' inputs to the log functions used in the models applied.
+'
+' In the case that a negative or zero number is found the record is skipped and no error will be thrown.
+' If you validate the resuls of these calculation and you see discrepancies with your validation reference
+' without an error on another obvious reason please check the data input for negative entries or ultimately
+' debug this code in order to find out if and where an error or miscalculation occurs.
+' =========================================================================================================
+
+Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long, ByVal annualizationFactor As Integer)
 
     ' This function computes the historical volatility by the close to close method.
     ' ==============================================================================
@@ -12,8 +29,6 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long)
     
     Dim i                       As Long
     Dim arrayCounter            As Long
-    
-    Dim annualizationFactor     As Integer
     
     Dim logReturn               As Double: logReturn = vbEmpty
     Dim logReturnsSum           As Double: logReturnsSum = vbEmpty
@@ -30,10 +45,6 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long)
         ' order in descending order. Thus, the latest data point is (i)
         ' and the previous data point is (i+1)
         ' ============================================================
-        
-        ' The following check is done in order to solidify that no negative or zero number
-        ' will be inputs to the log function.
-        ' ================================================================================
         
         If (diWs.Cells(i, diCloseCol).Value > 0 And diWs.Cells(i + 1, diCloseCol).Value > 0) Then
             logReturn = Log(diWs.Cells(i, diCloseCol).Value) - Log(diWs.Cells(i + 1, diCloseCol).Value)
@@ -65,7 +76,26 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long)
     
     ' Calculation of period's standard deviation
     ' ==========================================
-    annualizationFactor = crWs.Cells(8, crAnnualizationFactorCol).Value
     getCloseToCloseVolatility = Sqr(logReturnsSdFmSum / (logReturnsNumber - 1)) * Sqr(annualizationFactor)
+
+End Function
+
+Public Function getGarmanKlassVolatility(ByVal dataLastRow As Long, ByVal annualizationFactor As Integer)
+
+    Dim i   As Long
+    
+    Dim sumGk As Double: sumGk = vbEmpty
+    
+    For i = 2 To dataLastRow
+        With diWs
+            If (.Cells(i, diCloseCol).Value > 0) And (.Cells(i, diOpenCol).Value > 0) And (.Cells(i, diHighCol).Value > 0) And (.Cells(i, diLowCol).Value > 0) Then
+                sumGk = sumGk + ((1 / 2 * ((Log(.Cells(i, diHighCol).Value) - Log(.Cells(i, diLowCol).Value)) * (Log(.Cells(i, diHighCol).Value) - Log(.Cells(i, diLowCol).Value)))) _
+                              - ((2 * Log(2) - 1) _
+                              * (((Log(.Cells(i, diCloseCol).Value) - Log(.Cells(i, diOpenCol).Value)) * (Log(.Cells(i, diCloseCol).Value) - Log(.Cells(i, diOpenCol).Value))))))
+            End If
+        End With
+    Next i
+    
+    getGarmanKlassVolatility = Sqr(sumGk / (dataLastRow - 1)) * Sqr(annualizationFactor)
 
 End Function
