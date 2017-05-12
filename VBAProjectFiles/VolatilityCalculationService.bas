@@ -15,17 +15,58 @@ Option Explicit
 ' inputs to the log functions used in the models applied.
 '
 ' In the case that a negative or zero number is found the record is skipped and no error will be thrown.
-' If you validate the resuls of these calculation and you see discrepancies with your validation reference
-' without an error on another obvious reason please check the data input for negative entries or ultimately
-' debug this code in order to find out if and where an error or miscalculation occurs.
+' If you validate the resuls of these calculations and you see discrepancies with your validation reference
+' without an error popping up on another obvious reason please check the data input for negative entries or ultimately
+' debug this code in order to find out if and where an error or a miscalculation occurs.
 '
 '
-' Referance implementation note:
+' Reference implementation note:
 ' ------------------------------
 '
-' The calculations made below were done using the implementations of the respective models presented in the
+' The calculations made below were done using the formulas of the respective models presented in the
 ' "Measuring Historical Volatility" paper distributed by Santander on February 3, 2012.
-' =========================================================================================================
+'
+'
+' Parameters used in the following functions:
+' -------------------------------------------
+'
+' @param dataLastRow Last row number of the given input data located in the "Data Import" sheet
+' @param annualizationFactor Factor to be used in all the calculations in order to annualize the volatility number computed
+'
+'
+' Generic implementation notes concerning the function below:
+' -----------------------------------------------------------
+'
+' "Power of 2" calculation is not done with the traditional way by squaring a quantity (x ^ 2).
+' Instead repeated multiplication is used (x * x) for the reasons below:
+'
+' 1. As this calculation will be used within recursive sumation routines, by following the approach described above, we minimize
+'    the roundoff error which will occur during the sumation process.
+' 2. The above implementation is faster calculation wise.
+'
+'
+' Use of "two-pass" algorithms where is needed.
+' ---------------------------------------------
+' For the models which require computation of mean values the decision was to use two-pass algorithms, and not one-pass (online algorithms),
+' due to the fact that the majority of them present numericaly unstable behaviour except some specific implementations. Also, these
+' algorithms are chosen to be used in cases where the data sets are extremely large or the calculation is required to be done as the
+' data is generated. Here we do not deal with the latter cases.
+' However, if there will be a need for very large data sets calculation or better accuracy in the produced results, some of the
+' implementations will be revisited. Before that though, is advisable to revisit the whole framework, as this code plays the role of a
+' prototyping tool and it probably will be better to change to a different languange ecosystem when the above needs started to come to
+' the surface.
+'
+' Two-pass algorithms provide safety in two fronts:
+'
+' 1. Majority of one-pass algorithms are prone to provide poor results in the presence of rounding errors,
+'    as they compute variances as differences of two positive numbers. Therefore, can suffer severe cancellation that leaves the
+'    computed result dominated by roundoff. Also sometimes, the computed result can be even negative. In contrast, two pass algorithms
+'    yield a very accurate and nonnegative result, unless N is very large.
+'
+' 2. There are one-pass algorithms, such as Welford algorithm, that can produce accurate results. However, for the
+'    scope of this tool were not needed due to the size of the data we are dealing with and also because their error bound is not as small as
+'    the one for the two-pass algorithm.
+' ============================================================================================================================================
 
 Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long, ByVal annualizationFactor As Integer) As Double
 
@@ -50,8 +91,8 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long, ByVal annua
     i = 2
     Do While (i + 1 <= dataLastRow)
         
-        ' The reason for the i / i+1 sequence is that the data are
-        ' order in descending order. Thus, the latest data point is (i)
+        ' The reason for the i / i+1 sequence is that the data is
+        ' ordered in descending order. Thus, the latest data point is (i)
         ' and the previous data point is (i+1)
         ' ============================================================
         
@@ -73,18 +114,13 @@ Public Function getCloseToCloseVolatility(ByVal dataLastRow As Long, ByVal annua
     logReturnsMean = logReturnsSum / logReturnsNumber
         
     ' Calculation of sum sum of squared deviations from mean logReturn
-    ' Here the difference from mean log return is not "powered to 2".
-    ' Instead is multiplied with itself because this operation is faster.
-    ' ===================================================================
-        
+    ' ================================================================
     If UtilitiesArrays.isArrayAllocated(logReturns) = True Then
         For i = LBound(logReturns) To UBound(logReturns)
             logReturnsSdFmSum = logReturnsSdFmSum + ((logReturns(i) - logReturnsMean) * (logReturns(i) - logReturnsMean))
         Next i
     End If
     
-    ' Calculation of period's standard deviation
-    ' ==========================================
     getCloseToCloseVolatility = Sqr(logReturnsSdFmSum / (logReturnsNumber - 1)) * Sqr(annualizationFactor)
 
 End Function
@@ -133,6 +169,9 @@ Public Function getRogersSatchellVolatility(dataLastRow, annualizationFactor) As
 End Function
 
 Public Function getGarmanKlassYangZhangVolatility(dataLastRow, annualizationFactor) As Double
+
+    ' This function computes the historical volatility using the Garman-Klass Yang-Zhang Extension model.
+    ' ===================================================================================================
     
     Dim i       As Long
     Dim sumGkYz As Double: sumGkYz = vbEmpty
@@ -153,6 +192,9 @@ Public Function getGarmanKlassYangZhangVolatility(dataLastRow, annualizationFact
 End Function
 
 Public Function getYangZhangVolatility(dataLastRow, annualizationFactor) As Double
+
+    ' This function computes the historical volatility using the Yang-Zhang model.
+    ' ============================================================================
 
     Dim i                   As Long
     Dim n                   As Long: n = vbEmpty
@@ -204,7 +246,6 @@ Public Function getYangZhangVolatility(dataLastRow, annualizationFactor) As Doub
     
     overnigthVariance = overnightSum / (n - 1)
     openToCloseVariance = openToCloseSum / (n - 1)
-    
     rsVariance = sumRs / n
     
     getYangZhangVolatility = Sqr(overnigthVariance + (k * openToCloseVariance) + ((1 - k) * rsVariance)) * Sqr(annualizationFactor)
