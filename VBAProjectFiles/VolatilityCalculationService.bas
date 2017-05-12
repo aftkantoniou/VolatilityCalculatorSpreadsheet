@@ -159,7 +159,6 @@ Public Function getYangZhangVolatility(dataLastRow, annualizationFactor) As Doub
     
     Dim k                   As Double: k = vbEmpty
     Dim sumYz               As Double: sumYz = vbEmpty
-    Dim sumRs               As Double: sumRs = vbEmpty
     Dim rsVariance          As Double: rsVariance = vbEmpty
     Dim overnigthVariance   As Double: overnigthVariance = vbEmpty
     Dim openToCloseVariance As Double: openToCloseVariance = vbEmpty
@@ -206,11 +205,7 @@ Public Function getYangZhangVolatility(dataLastRow, annualizationFactor) As Doub
     overnigthVariance = overnightSum / (n - 1)
     openToCloseVariance = openToCloseSum / (n - 1)
     
-    ' WARNING
-    ' issue needs to be addressed
-    ' rs variable although visible to the whole module has zero value at this point
-    ' =============================================================================
-    rsVariance = 1.01884592454401E-03 / n
+    rsVariance = sumRs / n
     
     getYangZhangVolatility = Sqr(overnigthVariance + (k * openToCloseVariance) + ((1 - k) * rsVariance)) * Sqr(annualizationFactor)
     
