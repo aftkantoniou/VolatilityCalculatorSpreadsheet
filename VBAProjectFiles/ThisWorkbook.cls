@@ -31,10 +31,12 @@ Private Sub Workbook_Open()
          Debug.Print "Passed from crWs: Start"
          .Unprotect Password:="aft123"
          .Cells.Locked = True
-         .Range("B4:F4").Locked = False
          .Range("B8:F8").Locked = False
-         .Range("J4:L4").Locked = False
-         .Range("J4:L4").Value = ""
+         .Range("H4:J4").Value = vbNullString
+         .Range("L4:N4").Value = vbNullString
+         .Range("P4:R4").Value = vbNullString
+         .Range("T4:V4").Value = vbNullString
+         .Range("X4:Z4").Value = vbNullString
          .Protect Password:="aft123", UserInterFaceOnly:=True
          Debug.Print "Passed from crWs: End"
     End With
